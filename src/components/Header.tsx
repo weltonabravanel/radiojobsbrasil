@@ -26,7 +26,7 @@ const Header: React.FC = () => {
       {/* Header Principal unificado */}
       <header className="relative z-40 bg-[#0f172a] shadow-xl border-b border-white/5">
         <div className="hero-gradient">
-          <div className="container mx-auto px-6 py-4"> {/* Padding ajustado para ficar mais compacto */}
+          <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               
               {/* --- ESQUERDA: Logo e Dizeres --- */}
@@ -46,10 +46,8 @@ const Header: React.FC = () => {
                 </div>
               </Link>
               
-              {/* --- CENTRO/DIREITA: Navegação Desktop e Botões (Movido para cima) --- */}
+              {/* --- CENTRO/DIREITA: Navegação Desktop --- */}
               <div className="hidden lg:flex items-center space-x-6 flex-1 justify-end">
-                
-                {/* Links de Navegação */}
                 <nav className="flex items-center bg-white/5 rounded-2xl px-2 p-1 border border-white/10 backdrop-blur-sm">
                   {[
                     { to: '/', label: 'Início', icon: Radio },
@@ -72,10 +70,8 @@ const Header: React.FC = () => {
                   ))}
                 </nav>
 
-                {/* Separador Vertical Sutil */}
                 <div className="h-8 w-px bg-white/10"></div>
                 
-                {/* Botões de Ação */}
                 <div className="flex items-center space-x-3">
                   <a
                     href="https://apps.apple.com/us/app/triode-internet-radio/id1446513724" 
@@ -83,7 +79,7 @@ const Header: React.FC = () => {
                     rel="noopener noreferrer"
                     className="flex items-center space-x-2 px-4 py-2 rounded-xl font-bold bg-white text-black hover:bg-gray-200 transition-all duration-300 text-sm"
                   >
-                    <Smartphone size={16} />
+                    < Smartphone size={16} />
                     <span>iPhone</span>
                   </a>
 
@@ -108,7 +104,7 @@ const Header: React.FC = () => {
                 </div>
               </div>
 
-              {/* --- MOBILE: Botão Menu (Hambúrguer) --- */}
+              {/* --- MOBILE: Botão Menu --- */}
               <button 
                 className="lg:hidden bg-white/20 backdrop-blur-sm p-3 rounded-2xl border border-white/30 text-white hover:bg-white/30 transition-all duration-300 ml-4"
                 onClick={toggleMobileMenu}
@@ -121,7 +117,7 @@ const Header: React.FC = () => {
         </div>
       </header>
 
-      {/* --- MOBILE: Menu Dropdown (Mantido igual) --- */}
+      {/* --- MOBILE: Menu Dropdown --- */}
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md">
           <div className="m-4 p-6 bg-[#1e293b] rounded-3xl border border-white/10 animate-slide-up">
@@ -151,18 +147,29 @@ const Header: React.FC = () => {
               ))}
               
               <div className="grid grid-cols-2 gap-3 pt-4">
-                <a href="#" className="flex items-center justify-center space-x-2 p-4 rounded-2xl bg-white text-black font-bold">
+                {/* --- LINKS MOBILE ATUALIZADOS ABAIXO --- */}
+                <a 
+                  href="https://apps.apple.com/us/app/triode-internet-radio/id1446513724" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center space-x-2 p-4 rounded-2xl bg-white text-black font-bold"
+                >
                   <Smartphone size={20} />
                   <span>iPhone</span>
                 </a>
-                <a href="#" className="flex items-center justify-center space-x-2 p-4 rounded-2xl bg-white/10 text-white font-bold border border-white/10">
+                <a 
+                  href="https://play.google.com/store/apps/details?id=fm.radio.sanity.radiofm"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center space-x-2 p-4 rounded-2xl bg-white/10 text-white font-bold border border-white/10"
+                >
                   <Sparkles size={20} />
                   <span>Android</span>
                 </a>
               </div>
               
               <a
-                href="https://wa.me/5531982845056"
+                href="https://wa.me/5531982845056?text=Quero%20adicionar%20minha%20R%C3%A1dio"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center p-4 rounded-2xl bg-green-500 text-white font-bold w-full mt-4"

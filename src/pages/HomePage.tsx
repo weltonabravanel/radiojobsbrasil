@@ -46,10 +46,6 @@ const STORIES_DATA = [
   { name: 'Rádio Kboing', logo: 'https://img.radios.com.br/radio/lg/radio29604_1653915617.jpg', url: ' https://www.kboingfm.com.br' },
   { name: 'Rádio Melodia', logo: 'https://img.radios.com.br/radio/lg/radio13848_1439401456.jpg', url: 'http://www.melodia.com.br/' },
   { name: 'Web Vintage Radio', logo: 'https://img.radios.com.br/radio/lg/radio61905_1558962314.jpg', url: 'https://www.sistemavintage.com/'},
-                                                         
-  
-
- 
 ];
 
 const HomePage: React.FC = () => {
@@ -228,8 +224,8 @@ const HomePage: React.FC = () => {
   </Swiper>
 </section>
 
-      {/* FUNCIONALIDADES */}
-      <section className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-4">
+      {/* FUNCIONALIDADES - VISÍVEL APENAS NO DESKTOP (hidden md:grid) */}
+      <section className="hidden md:grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-4">
         {[
           { icon: <Radio size={30} className="md:w-9 md:h-9 text-green-600" />, title: 'Rádios para todos', text: 'Milhares de estações do Brasil e do mundo à sua disposição.' },
           { icon: <Headphones size={30} className="md:w-9 md:h-9 text-yellow-600" />, title: 'Fácil de usar', text: 'Clique, escute e curta sua estação preferida, sem complicações.' },
