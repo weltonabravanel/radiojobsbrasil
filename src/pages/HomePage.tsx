@@ -11,9 +11,9 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 
-// Lista estática de dados das rádios (movida para fora para organizar)
+// Lista estática de dados das rádios
 const STORIES_DATA = [
-  { name: 'Jovem Pan', logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Jovem_Pan_FM_logo_2018_%282%29.png', url: 'https://jovempan.com.br' },
+  { name: 'Jovem Pan', logo: 'https://img.radios.com.br/radio/lg/radio13388_1757040203.jpg', url: 'https://jovempan.com.br' },
   { name: 'CBN', logo: 'https://s3.glbimg.com/v1/AUTH_3ec28e89a5754c7b937cbc7ade6b1ace/assets/common/cbn-1024x1024.svg', url: 'https://cbn.globoradio.globo.com' },
   { name: 'BandNews', logo: 'https://img.band.com.br/image/2025/03/28/lofo-ao-vivo-bandnews-91316_300x300.png', url: 'https://bandnewsfm.band.uol.com.br' },
   { name: 'Antena 1', logo: 'https://img.radios.com.br/radio/xl/radio9505_1574106966.jpg', url: 'https://antena1.com.br' },
@@ -57,7 +57,7 @@ const HomePage: React.FC = () => {
   const [featuredStations, setFeaturedStations] = useState<RadioStation[]>([]);
   const [brazilStations, setBrazilStations] = useState<RadioStation[]>([]);
   
-  // Novo State para os Stories aleatórios
+  // State para os Stories aleatórios
   const [stories, setStories] = useState(STORIES_DATA);
 
   const [loadingPopular, setLoadingPopular] = useState(false);
@@ -67,7 +67,6 @@ const HomePage: React.FC = () => {
     document.title = 'Rádio BR - Ouça rádios brasileiras';
 
     // LÓGICA DE ALEATORIEDADE DOS STORIES
-    // Embaralha a lista ao carregar a página
     const shuffledStories = [...STORIES_DATA].sort(() => Math.random() - 0.5);
     setStories(shuffledStories);
 
@@ -131,37 +130,32 @@ const HomePage: React.FC = () => {
   }, []);
 
   return (
-    <div className="space-y-10 md:space-y-16 pb-20">
+    // Removido space-y para ter controle manual das margens negativas
+    <div className="flex flex-col pb-20">
 
-      {/* STORIES DE RÁDIOS - ESTILO INSTAGRAM (ADAPTADO MOBILE + ALEATÓRIO) */}
-      <section className="px-2 -mt-13 md:-mt-20 relative z-20">
+      {/* STORIES DE RÁDIOS - VERSÃO DESKTOP
+         Hidden no mobile (hidden), Visível no desktop (md:block)
+      */}
+      <section className="hidden md:block px-2 -mt-20 relative z-20 mb-10">
         <h2 className="text-2xl font-bold text-gray-900 mb-4 hidden md:block"></h2>
-        
-        {/* ALTERAÇÕES AQUI:
-           1. Mobile: overflow-x-auto (com rolagem)
-           2. Desktop (md): overflow-hidden (sem rolagem) + justify-center (centralizado)
-        */}
-        <div className="flex gap-3 md:gap-5 overflow-x-auto md:overflow-hidden scrollbar-hide pb-4 snap-x md:justify-center">
+        <div className="flex gap-3 md:gap-5 overflow-hidden justify-center">
           {stories.map((station, idx) => (
             <a
               key={idx}
               href={station.url}
               target="_blank"
               rel="noopener noreferrer"
-              // ALTERAÇÃO AQUI: Adicionado condicional para ocultar itens > 14 apenas no Desktop (md:hidden)
-              className={`flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 snap-start 
-                ${idx >= 14 ? 'md:hidden' : ''}`}
+              className={`flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 
+                ${idx >= 14 ? 'hidden' : ''}`} 
             >
-              {/* Círculo Responsivo */}
-              <div className="w-14 h-14 md:w-20 md:h-20 rounded-full border-[3px] md:border-4 border-yellow-400 overflow-hidden shadow-md flex-shrink-0">
+              <div className="w-20 h-20 rounded-full border-4 border-yellow-400 overflow-hidden shadow-md flex-shrink-0">
                 <img
                   src={station.logo}
                   alt={station.name}
                   className="object-cover w-full h-full"
                 />
               </div>
-              {/* Texto Responsivo */}
-              <span className="text-xs md:text-sm text-gray-700 mt-1.5 md:mt-2 text-center w-[60px] md:w-[80px] truncate block">
+              <span className="text-sm text-gray-700 mt-2 text-center w-[80px] truncate block">
                 {station.name}
               </span>
             </a>
@@ -169,67 +163,96 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-       {/* HERO BRASILEIRO */}
- 
-  <section className="w-full max-w-[1515px] mx-auto relative rounded-3xl overflow-hidden shadow-xl text-white aspect-[16/7] sm:aspect-[16/6] md:aspect-[16/5]">
-
-  <Swiper
-    modules={[Navigation, Pagination, Autoplay]}
-    navigation
-    pagination={{ clickable: true }}
-    autoplay={{ delay: 5000 }}
-    loop={true}
-    className="h-full w-full"
-  >
-    {[
-      {
-        href: "https://radiojobs.com.br",
-        img: "https://97fmnatal.com.br/images/vitrine.png",
-        alt: "Rádio antiga",
-        title: "Sintonize Emoções",
-        text: "Cada estação é uma porta para novas descobertas. Explore músicas, histórias e culturas que atravessam o tempo e o país.",
-      },
-      {
-        href: "https://radioliberdade.com.br/",
-        img: "https://radioliberdade.com.br/imagens/upload/destaquehome/1200x400-6749fa9bdbac2-1732901531.png",
-        alt: "Música e tecnologia",
-        title: "Escute a Rádio Sertaneja do Brasil",
-        text: "Uma mistura de músicas sertanejas Brasileiras ",
-      },
-      {
-        href: "https://apple.com.br",
-        img: "https://thinkmarketingmagazine.com/wp-content/uploads/2013/06/steve-jobs.jpg",
-        alt: "Música e tecnologia",
-        title: "Onde a Tradição Encontra o Futuro",
-        text: "A rádio brasileira se reinventa com tecnologia, mantendo viva a conexão entre voz, música e sentimento.",
-      },
-    ].map((slide, index) => (
-      <SwiperSlide key={index}>
-        <a
-          href={slide.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block relative h-full w-full"
+      {/* HERO BRASILEIRO 
+         Alterações: 
+         1. Adicionado '-mt-32' no mobile para subir aprox. 5cm visuais (128px).
+         2. Adicionado 'md:mt-0' para resetar no desktop (mantendo o fluxo normal após os stories).
+         3. 'relative z-10' para garantir camadas corretas.
+      */}
+      <section className="w-full max-w-[1515px] mx-auto relative rounded-3xl overflow-hidden shadow-xl text-white aspect-[16/7] sm:aspect-[16/6] md:aspect-[16/5] -mt-10 md:mt-0 md:mb-8 z-10">
+        <Swiper
+          modules={[Navigation, Pagination, Autoplay]}
+          navigation
+          pagination={{ clickable: true }}
+          autoplay={{ delay: 5000 }}
+          loop={true}
+          className="h-full w-full"
         >
-          <img
-            src={slide.img}
-            alt={slide.alt}
-            className="absolute inset-0 w-full h-full object-cover object-center"
-          />
-          <div className="relative z-10 px-6 py-10 sm:px-8 sm:py-12 md:p-12 flex flex-col justify-center h-full bg-black/50">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold drop-shadow-xl">{slide.title}</h2>
-            <p className="mt-4 text-base sm:text-lg md:text-xl max-w-xl text-white/90 drop-shadow-md">
-              {slide.text}
-            </p>
-          </div>
-        </a>
-      </SwiperSlide>
-    ))}
-  </Swiper>
-</section>
+          {[
+            {
+              href: "https://radiojobs.com.br",
+              img: "https://97fmnatal.com.br/images/vitrine.png",
+              alt: "Rádio antiga",
+              title: "Sintonize Emoções",
+              text: "Cada estação é uma porta para novas descobertas. Explore músicas, histórias e culturas que atravessam o tempo e o país.",
+            },
+            {
+              href: "https://radioliberdade.com.br/",
+              img: "https://radioliberdade.com.br/imagens/upload/destaquehome/1200x400-6749fa9bdbac2-1732901531.png",
+              alt: "Música e tecnologia",
+              title: "Escute a Rádio Sertaneja do Brasil",
+              text: "Uma mistura de músicas sertanejas Brasileiras ",
+            },
+            {
+              href: "https://apple.com.br",
+              img: "https://thinkmarketingmagazine.com/wp-content/uploads/2013/06/steve-jobs.jpg",
+              alt: "Música e tecnologia",
+              title: "Onde a Tradição Encontra o Futuro",
+              text: "A rádio brasileira se reinventa com tecnologia, mantendo viva a conexão entre voz, música e sentimento.",
+            },
+          ].map((slide, index) => (
+            <SwiperSlide key={index}>
+              <a
+                href={slide.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block relative h-full w-full"
+              >
+                <img
+                  src={slide.img}
+                  alt={slide.alt}
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                />
+                <div className="relative z-10 px-6 py-10 sm:px-8 sm:py-12 md:p-12 flex flex-col justify-center h-full bg-black/50">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold drop-shadow-xl">{slide.title}</h2>
+                  <p className="mt-4 text-base sm:text-lg md:text-xl max-w-xl text-white/90 drop-shadow-md">
+                    {slide.text}
+                  </p>
+                </div>
+              </a>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </section>
 
-      {/* FUNCIONALIDADES - VISÍVEL APENAS NO DESKTOP (hidden md:grid) */}
-      <section className="hidden md:grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-4">
+      {/* STORIES DE RÁDIOS - VERSÃO MOBILE (ABAIXO DO BANNER) */}
+      <section className="px-2 mt-6 relative z-20 md:hidden mb-8">
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-4 snap-x">
+          {stories.map((station, idx) => (
+            <a
+              key={idx}
+              href={station.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 snap-start"
+            >
+              <div className="w-14 h-14 rounded-full border-[3px] border-yellow-400 overflow-hidden shadow-md flex-shrink-0">
+                <img
+                  src={station.logo}
+                  alt={station.name}
+                  className="object-cover w-full h-full"
+                />
+              </div>
+              <span className="text-xs text-gray-700 mt-1.5 text-center w-[60px] truncate block">
+                {station.name}
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* FUNCIONALIDADES */}
+      <section className="hidden md:grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-4 mb-10">
         {[
           { icon: <Radio size={30} className="md:w-9 md:h-9 text-green-600" />, title: 'Rádios para todos', text: 'Milhares de estações do Brasil e do mundo à sua disposição.' },
           { icon: <Headphones size={30} className="md:w-9 md:h-9 text-yellow-600" />, title: 'Fácil de usar', text: 'Clique, escute e curta sua estação preferida, sem complicações.' },
@@ -250,7 +273,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* RÁDIOS DO BRASIL */}
-      <section>
+      <section className="mb-10">
         <div className="flex items-center justify-between mb-4 md:mb-6 px-4">
           <h2 className="text-xl md:text-3xl font-bold flex items-center text-gray-900">
             <Globe className="text-green-600 mr-2 w-6 h-6 md:w-8 md:h-8" /> Rádios do Brasil
@@ -270,7 +293,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* ESTAÇÕES POPULARES */}
-      <section>
+      <section className="mb-10">
         <div className="flex items-center justify-between mb-4 md:mb-6 px-4">
           <h2 className="text-xl md:text-3xl font-bold flex items-center text-gray-900">
             <TrendingUp className="text-yellow-500 mr-2 w-6 h-6 md:w-8 md:h-8" /> Mais Ouvidas
@@ -290,7 +313,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* ESTAÇÕES EM DESTAQUE */}
-      <section>
+      <section className="mb-10">
         <div className="flex items-center justify-between mb-4 md:mb-6 px-4">
           <h2 className="text-xl md:text-3xl font-bold flex items-center text-gray-900">
             <Star className="text-red-500 mr-2 w-6 h-6 md:w-8 md:h-8" /> Em Destaque
@@ -305,7 +328,7 @@ const HomePage: React.FC = () => {
 
       {/* ESTAÇÕES RECENTES */}
       {recentlyPlayed.length > 0 && (
-        <section>
+        <section className="mb-10">
           <div className="flex items-center justify-between mb-4 md:mb-6 px-4">
             <h2 className="text-xl md:text-3xl font-bold text-gray-900">Ouvidas Recentemente</h2>
             <button
