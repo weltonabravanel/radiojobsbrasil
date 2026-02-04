@@ -28,6 +28,14 @@ const STORIES_DATA = [
   { name: 'Nativa FM', logo: 'https://play-lh.googleusercontent.com/wjb4ogU4G9GC-ckpP0FwH-g8djFPPM1yCHedYBBIPruY3MmpAsR2xVa-kTZXLb4BmQ', url: 'https://nativa.fm' },
   { name: 'BH FM', logo: 'https://play-lh.googleusercontent.com/NtWriUQSnawi2s9DD9wvujyeFgYbVsn9buq_8VomcBSgIDR0iP2XPT-SuM7JynSW-c0', url: 'https://bhfm.com.br' },
   { name: 'Top FM', logo: 'https://upload.wikimedia.org/wikipedia/pt/thumb/1/10/Logotipo_da_Top_FM.png/250px-Logotipo_da_Top_FM.png', url: 'https://topfm.com.br' },
+  { name: 'Ótima FM', logo: 'https://img.radios.com.br/radio/lg/radio27258_1646778302.png', url: 'https://otimafm.com.br' },
+  { name: 'Liberdade FM', logo: 'https://img.radios.com.br/radio/md/radio13590_1661519400.jpeg', url: 'https://www.radioliberdade.com.br/' },
+  { name: 'Rádio Metropolitana', logo: 'https://img.radios.com.br/radio/lg/radio13900_1665067845.png', url: 'http://www.metropolitanafm.com.br/' },
+  { name: 'Rádio Bom Sucesso', logo: 'https://img.radios.com.br/radio/md/radio10473_1574106832.jpg', url: 'https://radiobomsucesso.com.br/' },
+  { name: 'Rádio Itatiaia', logo: 'https://img.radios.com.br/radio/lg/radio14_1646746883.jpeg', url: 'https://www.itatiaia.com.br/' },
+  { name: 'Rádio Canção Nova', logo: 'https://img.radios.com.br/radio/lg/radio11125_1568051795.png', url:'https://radio.cancaonova.com/' },
+  { name: 'Rádio Inconfidência', logo: 'https://img.radios.com.br/radio/lg/radio139_1488725850.jpg', url: 'https://www.inconfidencia.com.br/' },
+ 
 ];
 
 const HomePage: React.FC = () => {
@@ -116,7 +124,8 @@ const HomePage: React.FC = () => {
     <div className="space-y-10 md:space-y-16 pb-20">
 
       {/* STORIES DE RÁDIOS - ESTILO INSTAGRAM (ADAPTADO MOBILE + ALEATÓRIO) */}
-      <section className="px-2 -mt-13 md:-mt-10 relative z-20">
+      {/* ALTERAÇÃO AQUI: Mudado de md:-mt-10 para md:-mt-28 para subir aprox 2cm no desktop */}
+      <section className="px-2 -mt-13 md:-mt-20 relative z-20">
         <h2 className="text-2xl font-bold text-gray-900 mb-4 hidden md:block"></h2>
         
         {/* Container Scrollável */}
