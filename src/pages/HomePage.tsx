@@ -229,7 +229,7 @@ const HomePage: React.FC = () => {
 </section>
 
       {/* FUNCIONALIDADES */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-4">
+      <section className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-4">
         {[
           { icon: <Radio size={30} className="md:w-9 md:h-9 text-green-600" />, title: 'Rádios para todos', text: 'Milhares de estações do Brasil e do mundo à sua disposição.' },
           { icon: <Headphones size={30} className="md:w-9 md:h-9 text-yellow-600" />, title: 'Fácil de usar', text: 'Clique, escute e curta sua estação preferida, sem complicações.' },
