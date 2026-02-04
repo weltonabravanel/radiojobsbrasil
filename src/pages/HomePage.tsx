@@ -35,6 +35,20 @@ const STORIES_DATA = [
   { name: 'Rádio Itatiaia', logo: 'https://img.radios.com.br/radio/lg/radio14_1646746883.jpeg', url: 'https://www.itatiaia.com.br/' },
   { name: 'Rádio Canção Nova', logo: 'https://img.radios.com.br/radio/lg/radio11125_1568051795.png', url:'https://radio.cancaonova.com/' },
   { name: 'Rádio Inconfidência', logo: 'https://img.radios.com.br/radio/lg/radio139_1488725850.jpg', url: 'https://www.inconfidencia.com.br/' },
+  { name: 'Rádio Jornal', logo: 'https://img.radios.com.br/radio/lg/radio13488_1558098324.jpg', url: 'https://radiojornal.com.br/' },
+  { name: 'Rádio Gaúcha', logo: 'https://img.radios.com.br/radio/md/radio13176_1628168105.png', url: 'https://gauchazh.clicrbs.com.br/' },
+  { name: 'Rádio Band FM ', logo: 'https://img.radios.com.br/radio/lg/radio10358_1526480428.jpg', url: 'https://www.band.com.br/band-fm/' },
+  { name: 'Rádio Antena 1', logo: 'https://img.radios.com.br/radio/lg/radio15456_1758287813.jpg', url: 'https://www.antena1rio.com.br/' },
+  { name: 'Rádio Clube', logo: 'https://img.radios.com.br/radio/lg/radio11839_1658250334.png', url: 'https://clube.fm/' },
+  { name: 'Rádio FM O Dia', logo: 'https://img.radios.com.br/radio/lg/radio229211_1706128532.jpeg', url: 'https://macae.fmodia.com.br/' },
+  { name: 'Super Rádio Tupi', logo: 'https://img.radios.com.br/radio/lg/radio14215_1732190432.png', url: 'https://www.tupi.fm/' },
+  { name: 'Rádio Nativa', logo: 'https://img.radios.com.br/radio/lg/radio14040_1677589865.png', url: 'https://www.band.com.br/radios/nativa/sao-paulo' },
+  { name: 'Rádio Kboing', logo: 'https://img.radios.com.br/radio/lg/radio29604_1653915617.jpg', url: ' https://www.kboingfm.com.br' },
+  { name: 'Rádio Melodia', logo: 'https://img.radios.com.br/radio/lg/radio13848_1439401456.jpg', url: 'http://www.melodia.com.br/' },
+  { name: 'Web Vintage Radio', logo: 'https://img.radios.com.br/radio/lg/radio61905_1558962314.jpg', url: 'https://www.sistemavintage.com/'},
+                                                         
+  
+
  
 ];
 
