@@ -11,7 +11,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 
-// Lista estática de dados das rádios
+// Lista estática de dados das rádios (movida para fora para organizar)
 const STORIES_DATA = [
   { name: 'Jovem Pan', logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Jovem_Pan_FM_logo_2018_%282%29.png', url: 'https://jovempan.com.br' },
   { name: 'CBN', logo: 'https://s3.glbimg.com/v1/AUTH_3ec28e89a5754c7b937cbc7ade6b1ace/assets/common/cbn-1024x1024.svg', url: 'https://cbn.globoradio.globo.com' },
@@ -57,8 +57,8 @@ const HomePage: React.FC = () => {
   const [featuredStations, setFeaturedStations] = useState<RadioStation[]>([]);
   const [brazilStations, setBrazilStations] = useState<RadioStation[]>([]);
   
-  // State para os Stories
-  const [stories, setStories] = useState<typeof STORIES_DATA>([]);
+  // Novo State para os Stories aleatórios
+  const [stories, setStories] = useState(STORIES_DATA);
 
   const [loadingPopular, setLoadingPopular] = useState(false);
   const [loadingBrazil, setLoadingBrazil] = useState(false);
@@ -66,13 +66,9 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     document.title = 'Rádio BR - Ouça rádios brasileiras';
 
-    // LÓGICA DE ALEATORIEDADE E LIMITAÇÃO RESPONSIVA
-    // Embaralha e pega 12 itens no total (para ter suficiente no desktop)
-    // O CSS controlará a exibição de apenas 6 no mobile
-    const shuffledStories = [...STORIES_DATA]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 14); 
-      
+    // LÓGICA DE ALEATORIEDADE DOS STORIES
+    // Embaralha a lista ao carregar a página
+    const shuffledStories = [...STORIES_DATA].sort(() => Math.random() - 0.5);
     setStories(shuffledStories);
 
     const CACHE_TTL = 1000 * 60 * 10; // 10 minutos
@@ -137,22 +133,22 @@ const HomePage: React.FC = () => {
   return (
     <div className="space-y-10 md:space-y-16 pb-20">
 
-      {/* STORIES DE RÁDIOS - GRADE SEM ROLAGEM */}
+      {/* STORIES DE RÁDIOS - ESTILO INSTAGRAM (ADAPTADO MOBILE + ALEATÓRIO) */}
+      {/* ALTERAÇÃO AQUI: Mudado de md:-mt-10 para md:-mt-28 para subir aprox 2cm no desktop */}
       <section className="px-2 -mt-13 md:-mt-20 relative z-20">
         <h2 className="text-2xl font-bold text-gray-900 mb-4 hidden md:block"></h2>
         
-        {/* Container em Grade (Flex Wrap) */}
-        <div className="flex flex-wrap justify-center gap-3 md:gap-5 pb-4">
+        {/* Container Scrollável */}
+        <div className="flex gap-3 md:gap-5 overflow-x-auto scrollbar-hide pb-4 snap-x">
           {stories.map((station, idx) => (
             <a
               key={idx}
               href={station.url}
               target="_blank"
               rel="noopener noreferrer"
-              // AQUI ESTÁ A LÓGICA: Se o índice for >= 6, adiciona 'hidden md:flex'
-              // Isso esconde do item 7 em diante apenas no mobile.
-              className={`flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 ${idx >= 6 ? 'hidden md:flex' : 'flex'}`}
+              className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 snap-start"
             >
+              {/* Círculo Responsivo: w-14 (mobile) vs w-20 (desktop) */}
               <div className="w-14 h-14 md:w-20 md:h-20 rounded-full border-[3px] md:border-4 border-yellow-400 overflow-hidden shadow-md flex-shrink-0">
                 <img
                   src={station.logo}
@@ -160,6 +156,7 @@ const HomePage: React.FC = () => {
                   className="object-cover w-full h-full"
                 />
               </div>
+              {/* Texto Responsivo: text-xs (mobile) vs text-sm (desktop) */}
               <span className="text-xs md:text-sm text-gray-700 mt-1.5 md:mt-2 text-center w-[60px] md:w-[80px] truncate block">
                 {station.name}
               </span>
