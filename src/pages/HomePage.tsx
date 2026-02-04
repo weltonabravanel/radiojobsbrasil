@@ -116,7 +116,7 @@ const HomePage: React.FC = () => {
     <div className="space-y-10 md:space-y-16 pb-20">
 
       {/* STORIES DE RÁDIOS - ESTILO INSTAGRAM (ADAPTADO MOBILE + ALEATÓRIO) */}
-      <section className="px-4 mt-6 md:-mt-20 relative z-20">
+      <section className="px-4 -mt-10 md:-mt-20 relative z-20">
         <h2 className="text-2xl font-bold text-gray-900 mb-4 hidden md:block"></h2>
         
         {/* Container Scrollável */}
