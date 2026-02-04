@@ -134,21 +134,25 @@ const HomePage: React.FC = () => {
     <div className="space-y-10 md:space-y-16 pb-20">
 
       {/* STORIES DE RÁDIOS - ESTILO INSTAGRAM (ADAPTADO MOBILE + ALEATÓRIO) */}
-      {/* ALTERAÇÃO AQUI: Mudado de md:-mt-10 para md:-mt-28 para subir aprox 2cm no desktop */}
       <section className="px-2 -mt-13 md:-mt-20 relative z-20">
         <h2 className="text-2xl font-bold text-gray-900 mb-4 hidden md:block"></h2>
         
-        {/* Container Scrollável */}
-        <div className="flex gap-3 md:gap-5 overflow-x-auto scrollbar-hide pb-4 snap-x">
+        {/* ALTERAÇÕES AQUI:
+           1. Mobile: overflow-x-auto (com rolagem)
+           2. Desktop (md): overflow-hidden (sem rolagem) + justify-center (centralizado)
+        */}
+        <div className="flex gap-3 md:gap-5 overflow-x-auto md:overflow-hidden scrollbar-hide pb-4 snap-x md:justify-center">
           {stories.map((station, idx) => (
             <a
               key={idx}
               href={station.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 snap-start"
+              // ALTERAÇÃO AQUI: Adicionado condicional para ocultar itens > 14 apenas no Desktop (md:hidden)
+              className={`flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 snap-start 
+                ${idx >= 14 ? 'md:hidden' : ''}`}
             >
-              {/* Círculo Responsivo: w-14 (mobile) vs w-20 (desktop) */}
+              {/* Círculo Responsivo */}
               <div className="w-14 h-14 md:w-20 md:h-20 rounded-full border-[3px] md:border-4 border-yellow-400 overflow-hidden shadow-md flex-shrink-0">
                 <img
                   src={station.logo}
@@ -156,7 +160,7 @@ const HomePage: React.FC = () => {
                   className="object-cover w-full h-full"
                 />
               </div>
-              {/* Texto Responsivo: text-xs (mobile) vs text-sm (desktop) */}
+              {/* Texto Responsivo */}
               <span className="text-xs md:text-sm text-gray-700 mt-1.5 md:mt-2 text-center w-[60px] md:w-[80px] truncate block">
                 {station.name}
               </span>
