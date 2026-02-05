@@ -8,7 +8,6 @@ import CommercialPlayer from './CommercialPlayer';
 
 // Componente de Ícone Social
 const SocialIcon = ({ type }: { type: 'whatsapp' | 'facebook' | 'twitter' | 'linkedin' }) => {
-  // Adicionei classes para feedback de toque no mobile
   const commonClass = "transition-transform group-hover:scale-110 group-active:scale-95";
   
   if (type === 'whatsapp') {
@@ -55,7 +54,10 @@ const Player: React.FC = () => {
     setCurrentStation
   } = useRadio();
 
-  // Lista de comerciais (Mantida)
+  // URL da imagem que aparecerá no compartilhamento
+  const SITE_THUMBNAIL = "https://static-kbo-site.knbcdn.com.br/kboingfm/img-radios/radios-online.jpg"; // Substitua pelo link real da sua imagem
+  const SITE_URL = "https://radiojobs.com.br";
+
   const commercialUrls = [
     'https://projetoradios.vercel.app/claroprezao.mp3',
     'https://projetoradios.vercel.app/mercadolivre19reais.mp3',
@@ -78,11 +80,11 @@ const Player: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [prevVolume, setPrevVolume] = useState(volume);
   const [isPlayingCommercial, setIsPlayingCommercial] = useState(false);
-  const [pendingStation, setPendingStation] = useState<typeof currentStation>(null);
+  const [pendingStation, setPendingStation] = useState<any>(null);
   const [userRequestedPlay, setUserRequestedPlay] = useState(false);
   const [currentTrackTitle, setCurrentTrackTitle] = useState<string>('');
+  const [copied, setCopied] = useState(false);
   
-  // Estados do Comercial
   const [commercialTimeLeft, setCommercialTimeLeft] = useState(0);
   const [canSkipCommercial, setCanSkipCommercial] = useState(false);
   const [currentCommercial, setCurrentCommercial] = useState<{
@@ -93,7 +95,6 @@ const Player: React.FC = () => {
   const [commercialProgress, setCommercialProgress] = useState(0);
   const [commercialDuration, setCommercialDuration] = useState(0);
 
-  // CSS
   const marqueeStyle = `
     @keyframes marquee {
       0% { transform: translateX(0); }
@@ -114,7 +115,6 @@ const Player: React.FC = () => {
 
   const commercialData: { [key: string]: { title: string; advertiser: string; image: string } } = {
     'https://www.radiojobs.com.br/claroprezao.mp3': { title: 'Claro Prezão', advertiser: 'Claro', image: 'https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop' },
-    // ... outros comerciais
   };
 
   const getRandomCommercial = (): string => commercialUrls[Math.floor(Math.random() * commercialUrls.length)];
@@ -128,20 +128,39 @@ const Player: React.FC = () => {
     };
   };
 
+  // --- LÓGICA DE COMPARTILHAMENTO ATUALIZADA COM IMAGEM ---
   const shareToSocial = (platform: 'whatsapp' | 'facebook' | 'twitter' | 'linkedin') => {
-    const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent(`Estou ouvindo ${currentStation?.name} ao vivo! 🎵`);
+    const stationName = currentStation?.name || "Rádio Online";
+    const message = `Estou ouvindo a rádio ${stationName} no site ${SITE_URL} 🎵`;
+    
+    const encodedText = encodeURIComponent(message);
+    const encodedUrl = encodeURIComponent(SITE_URL);
+    const encodedImage = encodeURIComponent(SITE_THUMBNAIL);
     
     let shareUrl = '';
-    if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${text}%20${url}`;
-    if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-    if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
-    if (platform === 'linkedin') shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+    if (platform === 'whatsapp') {
+      shareUrl = `https://wa.me/?text=${encodedText}`;
+    }
+    if (platform === 'facebook') {
+      // Facebook usa o link para buscar as tags OG do site
+      shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedText}`;
+    }
+    if (platform === 'twitter') {
+      shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
+    }
+    if (platform === 'linkedin') {
+      shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+    }
     
     window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
-  // --- EFEITOS E AUDIO ---
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(SITE_URL);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   useEffect(() => {
     if ('mediaSession' in navigator && currentStation) {
       const title = isPlayingCommercial && currentCommercial 
@@ -154,7 +173,7 @@ const Player: React.FC = () => {
 
       const artwork = isPlayingCommercial && currentCommercial
         ? currentCommercial.image
-        : (currentStation.favicon || 'https://via.placeholder.com/512/3b82f6/ffffff?text=Radio');
+        : (currentStation.favicon || SITE_THUMBNAIL);
 
       navigator.mediaSession.metadata = new MediaMetadata({
         title: title,
@@ -184,14 +203,6 @@ const Player: React.FC = () => {
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume;
   }, [volume]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying && !isPlayingCommercial && currentStation) {
-      setCurrentTrackTitle('');
-    }
-    return () => clearInterval(interval);
-  }, [currentStation, isPlaying, isPlayingCommercial]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -234,7 +245,7 @@ const Player: React.FC = () => {
     };
   }, [isPlayingCommercial, pendingStation, canSkipCommercial]);
 
-  const playCommercialBeforeStation = async (station: typeof currentStation) => {
+  const playCommercialBeforeStation = async (station: any) => {
     if (!audioRef.current || !station) return;
     const randomCommercialUrl = getRandomCommercial();
     const commercialInfo = getCommercialInfo(randomCommercialUrl);
@@ -257,7 +268,7 @@ const Player: React.FC = () => {
     }
   };
 
-  const playRadioStation = async (station: typeof currentStation) => {
+  const playRadioStation = async (station: any) => {
     if (!audioRef.current || !station) return;
     try {
       audioRef.current.pause();
@@ -375,7 +386,6 @@ const Player: React.FC = () => {
         <div className="glass-card-dark p-3 w-full max-w-5xl mx-auto shadow-2xl backdrop-blur-xl border border-white/10 rounded-2xl relative">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
             
-            {/* 1. INFO STATION (ESQUERDA) */}
             <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 min-w-0">
               <StationLogo />
               <div className="min-w-0 flex-1 overflow-hidden">
@@ -387,23 +397,14 @@ const Player: React.FC = () => {
                 </div>
               </div>
               
-              {/* --- NOVOS CONTROLES MOBILE (DIREITA TOPO) --- */}
-              {/* Agora os ícones aparecem aqui em telas pequenas */}
               <div className="md:hidden flex items-center gap-0.5">
                 <button onClick={() => shareToSocial('whatsapp')} className="p-1.5 rounded-full text-white/80 hover:bg-white/10 active:scale-95 transition-all group">
                   <SocialIcon type="whatsapp" />
                 </button>
-                <button onClick={() => shareToSocial('facebook')} className="p-1.5 rounded-full text-white/80 hover:bg-white/10 active:scale-95 transition-all group">
-                  <SocialIcon type="facebook" />
-                </button>
-                <button onClick={() => shareToSocial('twitter')} className="p-1.5 rounded-full text-white/80 hover:bg-white/10 active:scale-95 transition-all group">
-                  <SocialIcon type="twitter" />
-                </button>
-                <button onClick={() => shareToSocial('linkedin')} className="p-1.5 rounded-full text-white/80 hover:bg-white/10 active:scale-95 transition-all group">
-                  <SocialIcon type="linkedin" />
+                <button onClick={copyToClipboard} className="p-1.5 rounded-full text-white/80 hover:bg-white/10 active:scale-95 transition-all">
+                  {copied ? <Check size={18} className="text-green-400" /> : <LinkIcon size={18} />}
                 </button>
                 
-                {/* Separador pequeno */}
                 <div className="w-px h-6 bg-white/10 mx-0.5"></div>
 
                 <button
@@ -417,13 +418,10 @@ const Player: React.FC = () => {
               </div>
             </div>
 
-            {/* 2. CONTROLES CENTRAIS E SOCIAIS DESKTOP (DIREITA/CENTRO) */}
             <div className="flex items-center justify-between w-full md:w-auto gap-3 md:gap-5 bg-black/10 md:bg-transparent p-2 md:p-0 rounded-xl">
               
               <div className="flex items-center gap-2 md:gap-3">
-                
-                {/* Ícones Sociais (Apenas Desktop - mantidos para telas grandes) */}
-                <div className="hidden md:flex items-center gap-2 mr-4 border-r border-white/10 pr-4">
+                <div className="hidden md:flex items-center gap-1.5 mr-4 border-r border-white/10 pr-4">
                   <button onClick={() => shareToSocial('whatsapp')} className="p-1.5 rounded-full hover:bg-white/10 transition-colors group" title="WhatsApp">
                     <SocialIcon type="whatsapp" />
                   </button>
@@ -433,8 +431,8 @@ const Player: React.FC = () => {
                   <button onClick={() => shareToSocial('twitter')} className="p-1.5 rounded-full hover:bg-white/10 transition-colors group" title="X / Twitter">
                     <SocialIcon type="twitter" />
                   </button>
-                  <button onClick={() => shareToSocial('linkedin')} className="p-1.5 rounded-full hover:bg-white/10 transition-colors group" title="LinkedIn">
-                    <SocialIcon type="linkedin" />
+                  <button onClick={copyToClipboard} className="p-1.5 rounded-full hover:bg-white/10 transition-colors text-white/70" title="Copiar Link">
+                    {copied ? <Check size={18} className="text-green-400" /> : <LinkIcon size={18} />}
                   </button>
                 </div>
 
@@ -459,7 +457,6 @@ const Player: React.FC = () => {
                   )}
                 </button>
 
-                {/* Favorito (Desktop) */}
                 <button
                   onClick={() => toggleFavorite(currentStation)}
                   className={`hidden md:block p-2 rounded-full transition-all hover:bg-white/10 ${
@@ -470,10 +467,8 @@ const Player: React.FC = () => {
                 </button>
               </div>
 
-              {/* Separador Vertical (Mobile) */}
               <div className="w-px h-8 bg-white/10 md:hidden mx-1"></div>
 
-              {/* Volume */}
               <div className="flex items-center gap-2">
                 <button onClick={toggleMute} className="text-white/70 hover:text-white transition-colors">
                   {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
