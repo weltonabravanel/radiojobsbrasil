@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Radio, Heart, Globe, Headphones, TrendingUp, Star } from 'lucide-react';
+import { Radio, Heart, Globe, Headphones, TrendingUp, Star, X, Search } from 'lucide-react';
 import StationList from '../components/StationList';
 import { useRadio } from '../contexts/RadioContext';
 import { fetchStations } from '../services/api';
@@ -11,7 +11,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 
-// Lista estática de dados das rádios
+// Lista estática de dados das rádios (Stories)
 const STORIES_DATA = [
   { name: 'Jovem Pan', logo: 'https://img.radios.com.br/radio/lg/radio13388_1757040203.jpg', url: 'https://jovempan.com.br' },
   { name: 'CBN', logo: 'https://s3.glbimg.com/v1/AUTH_3ec28e89a5754c7b937cbc7ade6b1ace/assets/common/cbn-1024x1024.svg', url: 'https://cbn.globoradio.globo.com' },
@@ -48,11 +48,18 @@ const STORIES_DATA = [
   { name: 'Web Vintage Radio', logo: 'https://img.radios.com.br/radio/lg/radio61905_1558962314.jpg', url: 'https://www.sistemavintage.com/'},
 ];
 
+// Lista de Nomes para busca (Tags Sugestivas)
+const SUGGESTED_TAGS = [
+  "Jovem Pan", "Antena 1", "Coca-Cola FM", "BandNews", "Alpha FM",
+  "Nativa", "Mix FM", "89 Rock", "Nova Brasil", "Energia 97",
+  "Transamérica", "CBN", "Metropolitana", "Disney", "Rádio Globo"
+];
+
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { stations, isLoading, error, recentlyPlayed } = useRadio();
   
-  // States
+  // States principais
   const [popularStations, setPopularStations] = useState<RadioStation[]>([]);
   const [featuredStations, setFeaturedStations] = useState<RadioStation[]>([]);
   const [brazilStations, setBrazilStations] = useState<RadioStation[]>([]);
@@ -60,8 +67,47 @@ const HomePage: React.FC = () => {
   // State para os Stories aleatórios
   const [stories, setStories] = useState(STORIES_DATA);
 
+  // Loadings
   const [loadingPopular, setLoadingPopular] = useState(false);
   const [loadingBrazil, setLoadingBrazil] = useState(false);
+
+  // States para busca por Tags
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [tagStations, setTagStations] = useState<RadioStation[]>([]);
+  const [loadingTag, setLoadingTag] = useState(false);
+
+  // Função para limpar a busca
+  const clearTagSearch = () => {
+    setSelectedTag(null);
+    setTagStations([]);
+  };
+
+  // Função para lidar com clique na Tag (Busca por NOME + PAÍS: Brasil)
+  const handleTagClick = async (tagName: string) => {
+    // Se clicar na tag que já está ativa, limpa o filtro (toggle)
+    if (selectedTag === tagName) {
+      clearTagSearch();
+      return;
+    }
+
+    setSelectedTag(tagName);
+    setLoadingTag(true);
+    setTagStations([]); 
+
+    try {
+      // AQUI ESTÁ A MUDANÇA: Adicionamos country: 'Brazil'
+      const data = await fetchStations({ 
+        name: tagName, 
+        country: 'Brazil' // Filtra apenas estações do Brasil
+      }, 30);
+      
+      setTagStations(data);
+    } catch (err) {
+      console.error(`Erro ao buscar rádio ${tagName} no Brasil:`, err);
+    } finally {
+      setLoadingTag(false);
+    }
+  };
 
   useEffect(() => {
     document.title = 'Rádio BR - Ouça rádios brasileiras';
@@ -70,7 +116,7 @@ const HomePage: React.FC = () => {
     const shuffledStories = [...STORIES_DATA].sort(() => Math.random() - 0.5);
     setStories(shuffledStories);
 
-    const CACHE_TTL = 1000 * 60 * 10; // 10 minutos
+    const CACHE_TTL = 1000 * 60 * 10; 
 
     const getFromCache = (key: string) => {
       const cached = localStorage.getItem(key);
@@ -130,46 +176,56 @@ const HomePage: React.FC = () => {
   }, []);
 
   return (
-    // Removido space-y para ter controle manual das margens negativas
     <div className="flex flex-col pb-20">
 
-      {/* STORIES DE RÁDIOS - VERSÃO DESKTOP
-         Hidden no mobile (hidden), Visível no desktop (md:block)
-      */}
-      <section className="hidden md:block px-2 -mt-20 relative z-20 mb-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4 hidden md:block"></h2>
-        <div className="flex gap-3 md:gap-5 overflow-hidden justify-center">
-          {stories.map((station, idx) => (
-            <a
-              key={idx}
-              href={station.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 
-                ${idx >= 14 ? 'hidden' : ''}`} 
-            >
-              <div className="w-20 h-20 rounded-full border-4 border-yellow-400 overflow-hidden shadow-md flex-shrink-0">
-                <img
-                  src={station.logo}
-                  alt={station.name}
-                  className="object-cover w-full h-full"
-                />
-              </div>
-              <span className="text-sm text-gray-700 mt-2 text-center w-[80px] truncate block">
-                {station.name}
-              </span>
-            </a>
-          ))}
+      {/* 1. TAGS SUGESTIVAS DE RÁDIOS (No Topo) */}
+      <section className="w-full max-w-[1515px] mx-auto px-4 mb-2 md:mb-6 relative z-30 -mt-10 md:-mt-20">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
+          {SUGGESTED_TAGS.map((tag, index) => {
+            const isActive = selectedTag === tag;
+            return (
+              <button
+                key={index}
+                onClick={() => handleTagClick(tag)}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap shadow-sm active:scale-95
+                  ${isActive 
+                    ? 'bg-green-600 text-white border border-green-700 shadow-md' 
+                    : 'bg-white border border-gray-200 text-gray-600 hover:border-green-500 hover:text-green-700 hover:bg-green-50'
+                  }`}
+              >
+                {tag}
+              </button>
+            );
+          })}
         </div>
       </section>
 
-      {/* HERO BRASILEIRO 
-         Alterações: 
-         1. Adicionado '-mt-32' no mobile para subir aprox. 5cm visuais (128px).
-         2. Adicionado 'md:mt-0' para resetar no desktop (mantendo o fluxo normal após os stories).
-         3. 'relative z-10' para garantir camadas corretas.
-      */}
-      <section className="w-full max-w-[1515px] mx-auto relative rounded-3xl overflow-hidden shadow-xl text-white aspect-[16/7] sm:aspect-[16/6] md:aspect-[16/5] -mt-10 md:mt-0 md:mb-8 z-10">
+      {/* 2. SEÇÃO DE RESULTADOS DA BUSCA POR NOME (TAG) */}
+      {selectedTag && (
+        <section className="w-full max-w-[1515px] mx-auto px-4 mb-8 animate-fade-in relative z-30">
+          <div className="flex items-center justify-between mb-4 bg-green-50 p-4 rounded-xl border border-green-100">
+            <h2 className="text-xl font-bold flex items-center text-gray-900">
+              <Search className="text-green-600 mr-2 w-5 h-5" /> 
+              Buscando no Brasil: <span className="text-green-700 ml-1">"{selectedTag}"</span>
+            </h2>
+            <button
+              onClick={clearTagSearch}
+              className="flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-red-500 transition-colors bg-white px-3 py-1 rounded-lg border border-gray-200 shadow-sm"
+            >
+              <X size={16} /> Limpar
+            </button>
+          </div>
+          
+          <StationList
+            stations={tagStations}
+            isLoading={loadingTag}
+            emptyMessage={`Nenhuma rádio brasileira encontrada com o nome "${selectedTag}".`}
+          />
+        </section>
+      )}
+
+      {/* 3. HERO BRASILEIRO */}
+      <section className="w-full max-w-[1515px] mx-auto relative rounded-3xl overflow-hidden shadow-xl text-white aspect-[16/7] sm:aspect-[16/6] md:aspect-[16/5] mt-4 z-10">
         <Swiper
           modules={[Navigation, Pagination, Autoplay]}
           navigation
@@ -225,9 +281,36 @@ const HomePage: React.FC = () => {
         </Swiper>
       </section>
 
-      {/* STORIES DE RÁDIOS - VERSÃO MOBILE (ABAIXO DO BANNER) */}
-      <section className="px-2 mt-6 relative z-20 md:hidden mb-8">
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-4 snap-x">
+      {/* 4. STORIES DE RÁDIOS */}
+      <section className="px-2 mt-8 mb-8 relative z-20">
+        
+        {/* Container Desktop */}
+        <div className="hidden md:flex gap-3 md:gap-5 overflow-hidden justify-center">
+          {stories.map((station, idx) => (
+            <a
+              key={idx}
+              href={station.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 
+                ${idx >= 14 ? 'hidden' : ''}`} 
+            >
+              <div className="w-20 h-20 rounded-full border-4 border-yellow-400 overflow-hidden shadow-md flex-shrink-0">
+                <img
+                  src={station.logo}
+                  alt={station.name}
+                  className="object-cover w-full h-full"
+                />
+              </div>
+              <span className="text-sm text-gray-700 mt-2 text-center w-[80px] truncate block">
+                {station.name}
+              </span>
+            </a>
+          ))}
+        </div>
+
+        {/* Container Mobile (Scrollable) */}
+        <div className="md:hidden flex gap-3 overflow-x-auto scrollbar-hide pb-4 snap-x">
           {stories.map((station, idx) => (
             <a
               key={idx}
@@ -249,6 +332,7 @@ const HomePage: React.FC = () => {
             </a>
           ))}
         </div>
+
       </section>
 
       {/* FUNCIONALIDADES */}
