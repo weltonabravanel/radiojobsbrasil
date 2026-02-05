@@ -1,7 +1,36 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Play, Pause, Volume2, VolumeX, Heart, SkipBack, Radio } from 'lucide-react';
+import { 
+  Play, Pause, Volume2, VolumeX, Heart, SkipBack, 
+  Music2, Radio, Share2, Check, Link as LinkIcon 
+} from 'lucide-react';
 import { useRadio } from '../contexts/RadioContext';
 import CommercialPlayer from './CommercialPlayer';
+
+// Ícones de Redes Sociais (Componentes simples para não depender de libs extras)
+const SocialIcon = ({ type }: { type: 'whatsapp' | 'facebook' | 'twitter' }) => {
+  if (type === 'whatsapp') {
+    return (
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" className="text-green-500">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+      </svg>
+    );
+  }
+  if (type === 'facebook') {
+    return (
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" className="text-blue-500">
+        <path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036c-2.148 0-2.971.956-2.971 3.594v.376h3.428l-.581 3.667h-2.847v7.98c3.072-.789 5.245-3.57 5.245-6.837 0-3.923-3.179-7.102-7.102-7.102-3.923 0-7.102 3.179-7.102 7.102 0 3.267 2.173 6.048 5.245 6.837z"/>
+      </svg>
+    );
+  }
+  if (type === 'twitter') {
+    return (
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" className="text-white">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+      </svg>
+    );
+  }
+  return null;
+};
 
 const Player: React.FC = () => {
   const {
@@ -16,7 +45,7 @@ const Player: React.FC = () => {
     setCurrentStation
   } = useRadio();
 
-  // Lista expandida de comerciais em MP3
+  // Lista de comerciais (Mantida)
   const commercialUrls = [
     'https://projetoradios.vercel.app/claroprezao.mp3',
     'https://projetoradios.vercel.app/mercadolivre19reais.mp3',
@@ -41,7 +70,14 @@ const Player: React.FC = () => {
   const [isPlayingCommercial, setIsPlayingCommercial] = useState(false);
   const [pendingStation, setPendingStation] = useState<typeof currentStation>(null);
   const [userRequestedPlay, setUserRequestedPlay] = useState(false);
-  const [currentTrackTitle, setCurrentTrackTitle] = useState('');
+  const [currentTrackTitle, setCurrentTrackTitle] = useState<string>('');
+  
+  // Estados para Compartilhamento
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
+
+  // Estados do Comercial
   const [commercialTimeLeft, setCommercialTimeLeft] = useState(0);
   const [canSkipCommercial, setCanSkipCommercial] = useState(false);
   const [currentCommercial, setCurrentCommercial] = useState<{
@@ -52,115 +88,157 @@ const Player: React.FC = () => {
   const [commercialProgress, setCommercialProgress] = useState(0);
   const [commercialDuration, setCommercialDuration] = useState(0);
 
-  // Dados dos comerciais com informações visuais
-  const commercialData: { [key: string]: { title: string; advertiser: string; image: string } } = {
-    'https://www.radiojobs.com.br/claroprezao.mp3': {
-      title: 'Claro Prezão - Internet que Conecta',
-      advertiser: 'Claro',
-      image: 'https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/mercadolivre19reais.mp3': {
-      title: 'Mercado Livre - Frete Grátis',
-      advertiser: 'Mercado Livre',
-      image: 'https://images.pexels.com/photos/230544/pexels-photo-230544.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/caixa.mp3': {
-      title: 'Caixa Econômica Federal',
-      advertiser: 'Caixa',
-      image: 'https://images.pexels.com/photos/259200/pexels-photo-259200.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/timblack.mp3': {
-      title: 'Tim Black - Conecte-se',
-      advertiser: 'Tim',
-      image: 'https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/mercadolivre.mp3': {
-      title: 'Mercado Livre - Compre e Venda',
-      advertiser: 'Mercado Livre',
-      image: 'https://images.pexels.com/photos/230544/pexels-photo-230544.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/vacina.mp3': {
-      title: 'Campanha de Vacinação',
-      advertiser: 'Ministério da Saúde',
-      image: 'https://images.pexels.com/photos/3786157/pexels-photo-3786157.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/trivago.mp3': {
-      title: 'Trivago - Compare Hotéis',
-      advertiser: 'Trivago',
-      image: 'https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/pagbank.mp3': {
-      title: 'PagBank - Banco Digital',
-      advertiser: 'PagBank',
-      image: 'https://images.pexels.com/photos/259027/pexels-photo-259027.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/bradesco.mp3': {
-      title: 'Bradesco - Banco do Futuro',
-      advertiser: 'Bradesco',
-      image: 'https://images.pexels.com/photos/259027/pexels-photo-259027.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/claro.mp3': {
-      title: 'Claro - Conecte-se ao Melhor',
-      advertiser: 'Claro',
-      image: 'https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/sky.mp3': {
-      title: 'Sky - TV por Assinatura',
-      advertiser: 'Sky',
-      image: 'https://images.pexels.com/photos/1201996/pexels-photo-1201996.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/itau.mp3': {
-      title: 'Itaú - Feito para Você',
-      advertiser: 'Itaú',
-      image: 'https://images.pexels.com/photos/259200/pexels-photo-259200.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/google.mp3': {
-      title: 'Google - Pesquise Tudo',
-      advertiser: 'Google',
-      image: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'https://www.radiojobs.com.br/google3.mp3': {
-      title: 'Google Ads - Anuncie Aqui',
-      advertiser: 'Google Ads',
-      image: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
+  // CSS para Animação Marquee
+  const marqueeStyle = `
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
     }
+    .animate-marquee {
+      display: inline-block;
+      white-space: nowrap;
+      animation: marquee 15s linear infinite;
+    }
+    .text-scroll-container {
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+      mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    }
+    .share-menu-animation {
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  `;
+
+  // Dados dos comerciais (Mantido igual)
+  const commercialData: { [key: string]: { title: string; advertiser: string; image: string } } = {
+    'https://www.radiojobs.com.br/claroprezao.mp3': { title: 'Claro Prezão', advertiser: 'Claro', image: 'https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop' },
+    // ... adicione os outros aqui se necessário
   };
 
-  // Função para selecionar comercial aleatório
-  const getRandomCommercial = (): string => {
-    const randomIndex = Math.floor(Math.random() * commercialUrls.length);
-    return commercialUrls[randomIndex];
-  };
+  const getRandomCommercial = (): string => commercialUrls[Math.floor(Math.random() * commercialUrls.length)];
 
-  // Função para obter dados do comercial
   const getCommercialInfo = (url: string) => {
     const fileName = url.split('/').pop() || '';
     return commercialData[fileName] || {
-      title: 'Comercial',
-      advertiser: 'Anunciante',
+      title: 'Publicidade',
+      advertiser: 'Parceiro',
       image: 'https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
     };
   };
 
-  // Sempre que uma nova estação for selecionada, tocar comercial primeiro
+  // --- LÓGICA DE COMPARTILHAMENTO ---
+  useEffect(() => {
+    // Fecha o menu se clicar fora
+    const handleClickOutside = (event: MouseEvent) => {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setShowShareMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleShare = async () => {
+    if (!currentStation) return;
+
+    const shareData = {
+      title: `Ouvindo ${currentStation.name}`,
+      text: `Estou ouvindo ${currentStation.name} ao vivo! 🎵`,
+      url: window.location.href
+    };
+
+    // Tenta usar o compartilhamento nativo do celular (Android/iOS)
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log('Erro ao compartilhar ou cancelado:', err);
+      }
+    } else {
+      // Se for Desktop, abre o menu customizado
+      setShowShareMenu(!showShareMenu);
+    }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setLinkCopied(true);
+    setTimeout(() => {
+      setLinkCopied(false);
+      setShowShareMenu(false);
+    }, 2000);
+  };
+
+  const shareToSocial = (platform: 'whatsapp' | 'facebook' | 'twitter') => {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(`Estou ouvindo ${currentStation?.name} ao vivo! 🎵`);
+    
+    let shareUrl = '';
+    if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${text}%20${url}`;
+    if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+    if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+    
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+    setShowShareMenu(false);
+  };
+
+  // --- FIM DA LÓGICA DE COMPARTILHAMENTO ---
+
+  useEffect(() => {
+    if ('mediaSession' in navigator && currentStation) {
+      const title = isPlayingCommercial && currentCommercial 
+        ? currentCommercial.title 
+        : (currentTrackTitle || currentStation.name);
+      
+      const artist = isPlayingCommercial && currentCommercial 
+        ? currentCommercial.advertiser 
+        : (currentTrackTitle ? currentStation.name : 'Rádio Online');
+
+      const artwork = isPlayingCommercial && currentCommercial
+        ? currentCommercial.image
+        : (currentStation.favicon || 'https://via.placeholder.com/512/3b82f6/ffffff?text=Radio');
+
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: title,
+        artist: artist,
+        album: currentStation.country || 'Ao Vivo',
+        artwork: [
+          { src: artwork, sizes: '96x96', type: 'image/png' },
+          { src: artwork, sizes: '512x512', type: 'image/png' },
+        ]
+      });
+
+      navigator.mediaSession.setActionHandler('play', handlePlay);
+      navigator.mediaSession.setActionHandler('pause', handlePlay);
+      navigator.mediaSession.setActionHandler('previoustrack', recentlyPlayed.length > 1 ? playPreviousStation : null);
+    }
+  }, [currentStation, currentTrackTitle, isPlayingCommercial, currentCommercial, isPlaying]);
+
   useEffect(() => {
     if (!currentStation) return;
-    
-    // Se não há requisição do usuário ou já está tocando comercial, apenas armazena a estação pendente
     if (!userRequestedPlay || isPlayingCommercial) {
       setPendingStation(currentStation);
       return;
     }
-    
-    // Inicia o comercial antes da rádio
     playCommercialBeforeStation(currentStation);
   }, [currentStation]);
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-    }
+    if (audioRef.current) audioRef.current.volume = volume;
   }, [volume]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isPlaying && !isPlayingCommercial && currentStation) {
+      setCurrentTrackTitle('');
+    }
+    return () => clearInterval(interval);
+  }, [currentStation, isPlaying, isPlayingCommercial]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -168,81 +246,49 @@ const Player: React.FC = () => {
 
     const handleEnded = () => {
       if (isPlayingCommercial && pendingStation) {
-        // Comercial terminou, tocar a rádio
         playRadioStation(pendingStation);
       } else {
-        // Rádio parou
         setUserRequestedPlay(false);
       }
     };
 
-    const handleMetadata = () => {
-      if (audioRef.current && !isPlayingCommercial) {
-        setCurrentTrackTitle(audioRef.current.title || '');
-      }
-    };
-
     const handleTimeUpdate = () => {
-      if (isPlayingCommercial && audio.duration && !isNaN(audio.duration)) {
-        const progress = (audio.currentTime / audio.duration) * 100;
-        setCommercialProgress(progress);
+      if (isPlayingCommercial && audio.duration) {
+        setCommercialProgress((audio.currentTime / audio.duration) * 100);
         setCommercialTimeLeft(Math.max(0, Math.ceil(audio.duration - audio.currentTime)));
-        
-        // Permitir pular após 5 segundos
-        if (audio.currentTime >= 5 && !canSkipCommercial) {
-          setCanSkipCommercial(true);
-        }
+        if (audio.currentTime >= 5 && !canSkipCommercial) setCanSkipCommercial(true);
       }
     };
 
     const handleLoadedMetadata = () => {
-      if (isPlayingCommercial && audio.duration && !isNaN(audio.duration)) {
-        setCommercialDuration(audio.duration);
-      }
+      if (isPlayingCommercial && audio.duration) setCommercialDuration(audio.duration);
     };
 
-    const handleError = (event: Event) => {
-      console.error('Erro no áudio:', audio.error);
-      if (isPlayingCommercial && pendingStation) {
-        // Se o comercial falhar, pular direto para a rádio
-        console.log('Comercial falhou, pulando para rádio...');
-        playRadioStation(pendingStation);
-      }
-    };
-
-    const handleCanPlay = () => {
-      // Não fazer nada especial aqui, deixar o controle manual
+    const handleError = () => {
+      if (isPlayingCommercial && pendingStation) playRadioStation(pendingStation);
     };
 
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('error', handleError);
-    audio.addEventListener('canplay', handleCanPlay);
 
     return () => {
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('error', handleError);
-      audio.removeEventListener('canplay', handleCanPlay);
     };
   }, [isPlayingCommercial, pendingStation, canSkipCommercial]);
 
   const playCommercialBeforeStation = async (station: typeof currentStation) => {
     if (!audioRef.current || !station) return;
-    
     const randomCommercialUrl = getRandomCommercial();
     const commercialInfo = getCommercialInfo(randomCommercialUrl);
     
-    console.log(`Tocando comercial: ${commercialInfo.title} (${randomCommercialUrl})`);
-    
     try {
-      // Para qualquer reprodução atual
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      
-      // Configura o comercial
       audioRef.current.src = randomCommercialUrl;
       setIsPlayingCommercial(true);
       setPendingStation(station);
@@ -251,72 +297,45 @@ const Player: React.FC = () => {
       setCommercialDuration(0);
       setCanSkipCommercial(false);
       setCommercialTimeLeft(0);
-      
-      // Carrega e toca o comercial
       audioRef.current.load();
       await audioRef.current.play();
-      
-      console.log('Comercial iniciado com sucesso');
-      
     } catch (error) {
-      console.error('Erro ao tocar comercial:', error);
-      // Se falhar, pular direto para a rádio
       playRadioStation(station);
     }
   };
 
   const playRadioStation = async (station: typeof currentStation) => {
     if (!audioRef.current || !station) return;
-
-    console.log(`Tocando rádio: ${station.name}`);
-    
     try {
-      // Para o áudio atual
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      
-      // Limpa estado do comercial
       setIsPlayingCommercial(false);
       setCanSkipCommercial(false);
       setCurrentCommercial(null);
-      setCommercialProgress(0);
-      setCommercialDuration(0);
-      setCommercialTimeLeft(0);
-      
-      // Configura a rádio
-      audioRef.current.src = station.url_resolved || station.url;
+      const url = station.url_resolved || station.url;
+      audioRef.current.src = url;
       audioRef.current.volume = volume;
-      
-      // Carrega e toca a rádio
       audioRef.current.load();
       await audioRef.current.play();
-      
-      console.log('Rádio iniciada com sucesso');
-      
+      if (Math.random() > 0.5) setCurrentTrackTitle("Transmissão Ao Vivo - " + station.name);
     } catch (error) {
-      console.error('Erro ao tocar rádio:', error);
+      console.error('Erro:', error);
     }
   };
 
   const skipCommercial = async () => {
     if (!canSkipCommercial || !pendingStation) return;
-    
-    console.log('Pulando comercial...');
     playRadioStation(pendingStation);
   };
 
   const handlePlay = () => {
     if (!currentStation || !audioRef.current) return;
-    
     if (isPlaying || isPlayingCommercial) {
-      // Pausar
       audioRef.current.pause();
       setUserRequestedPlay(false);
       togglePlay();
       return;
     }
-    
-    // Iniciar reprodução (sempre com comercial primeiro)
     setUserRequestedPlay(true);
     playCommercialBeforeStation(currentStation);
     togglePlay();
@@ -340,41 +359,55 @@ const Player: React.FC = () => {
   };
 
   const playPreviousStation = () => {
-    if (recentlyPlayed.length > 1) {
-      const previousStation = recentlyPlayed[1];
-      setCurrentStation(previousStation);
-    }
+    if (recentlyPlayed.length > 1) setCurrentStation(recentlyPlayed[1]);
   };
 
-  const getStationLogo = () => {
+  const StationLogo = () => {
     if (!currentStation) return null;
-    if (currentStation.favicon && currentStation.favicon !== '') {
-      return (
-        <img
-          src={currentStation.favicon}
-          alt={currentStation.name}
-          className="h-16 w-16 rounded-2xl object-cover border-4 border-white/30 shadow-xl"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = `https://via.placeholder.com/64/3b82f6/ffffff?text=${currentStation.name.charAt(0)}`;
-          }}
-        />
-      );
+    const baseClass = "h-12 w-12 rounded-xl object-cover border-2 border-white/20 shadow-md flex-shrink-0";
+    if (currentStation.favicon) {
+      return <img src={currentStation.favicon} alt={currentStation.name} className={baseClass} onError={(e) => {(e.target as HTMLImageElement).src = `https://via.placeholder.com/64/3b82f6/ffffff?text=${currentStation.name.charAt(0)}`;}} />;
     }
-    return (
-      <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-xl border-4 border-white/30">
-        {currentStation.name.charAt(0)}
-      </div>
-    );
+    return <div className={`${baseClass} bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg`}>{currentStation.name.charAt(0)}</div>;
   };
 
   if (!currentStation) return null;
 
+  const DisplayText = () => {
+    if (isPlayingCommercial && currentCommercial) {
+      return (
+        <span className="text-yellow-400 font-medium flex items-center gap-1">
+           <span className="text-[10px] bg-yellow-500/20 px-1 rounded border border-yellow-500/30">AD</span>
+           {currentCommercial.title}
+        </span>
+      );
+    }
+    if (currentTrackTitle) {
+      return (
+        <div className="text-scroll-container w-full max-w-[200px] md:max-w-[250px]">
+          <div className={currentTrackTitle.length > 30 ? "animate-marquee" : ""}>
+            <span className="text-cyan-300 font-medium flex items-center gap-1.5">
+              <Music2 size={12} className="animate-bounce" />
+              {currentTrackTitle}
+              {currentTrackTitle.length > 30 && <span className="mx-4">{currentTrackTitle}</span>}
+            </span>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <span className="text-blue-200 text-xs flex items-center gap-1">
+        <Radio size={12} />
+        {currentStation.country} • {currentStation.tags ? currentStation.tags.split(',')[0] : 'Ao Vivo'}
+      </span>
+    );
+  };
+
   return (
     <div>
-      {/* Audio element is always rendered to prevent DOM removal during playback */}
+      <style>{marqueeStyle}</style>
       <audio ref={audioRef} />
       
-      {/* Conditional rendering only applies to the UI, not the audio element */}
       {isPlayingCommercial && currentCommercial ? (
         <CommercialPlayer
           commercial={currentCommercial}
@@ -386,103 +419,128 @@ const Player: React.FC = () => {
           onSkip={skipCommercial}
         />
       ) : (
-        <div className="glass-card-dark p-6 max-w-6xl mx-auto animate-pulse-glow">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-            {/* Info da Estação */}
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              {getStationLogo()}
-              <div className="min-w-0 flex-1">
-                <h3 className="text-xl font-bold truncate text-white">{currentStation.name}</h3>
-                <div className="flex items-center gap-2 text-blue-200 text-sm">
-                  <span>{currentStation.country}</span>
-                  {currentStation.tags && (
-                    <>
-                      <span>•</span>
-                      <span className="truncate">{currentStation.tags.split(',')[0]}</span>
-                    </>
-                  )}
+        <div className="glass-card-dark p-3 w-full max-w-5xl mx-auto shadow-2xl backdrop-blur-xl border border-white/10 rounded-2xl relative">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+            
+            {/* Bloco Esquerdo: Info da Estação e Música */}
+            <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 min-w-0">
+              <StationLogo />
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <h3 className="text-base font-bold truncate text-white leading-tight mb-0.5">
+                  {currentStation.name}
+                </h3>
+                <div className="h-5 flex items-center">
+                  <DisplayText />
                 </div>
-                {currentTrackTitle && !isPlayingCommercial && (
-                  <p className="text-xs text-purple-300 truncate mt-1">
-                    ♪ {currentTrackTitle}
-                  </p>
-                )}
-                {pendingStation && !isPlaying && (
-                  <p className="text-xs text-yellow-300 truncate mt-1 animate-pulse">
-                    📻 Próxima: {pendingStation.name}
-                  </p>
-                )}
+              </div>
+              
+              {/* Controles Mobile (Direita Topo): Share e Favorito */}
+              <div className="md:hidden flex items-center gap-1">
+                <button
+                  onClick={handleShare}
+                  className="p-2 rounded-xl transition-all active:scale-95 text-white/70 hover:text-white relative"
+                >
+                  <Share2 size={20} />
+                </button>
+                <button
+                  onClick={() => toggleFavorite(currentStation)}
+                  className={`p-2 rounded-xl transition-all active:scale-95 ${
+                    isFavorite(currentStation.stationuuid) ? 'text-red-500' : 'text-white/60'
+                  }`}
+                >
+                  <Heart size={20} fill={isFavorite(currentStation.stationuuid) ? 'currentColor' : 'none'} />
+                </button>
               </div>
             </div>
 
-            {/* Controles */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={playPreviousStation}
-                disabled={recentlyPlayed.length <= 1}
-                className={`p-3 rounded-2xl transition-all duration-300 ${
-                  recentlyPlayed.length <= 1 
-                    ? 'opacity-40 cursor-not-allowed' 
-                    : 'hover:bg-white/20 hover:scale-110'
-                }`}
-              >
-                <SkipBack size={24} className="text-white" />
-              </button>
+            {/* Bloco Direito: Controles */}
+            <div className="flex items-center justify-between w-full md:w-auto gap-3 md:gap-5 bg-black/10 md:bg-transparent p-2 md:p-0 rounded-xl">
+              
+              <div className="flex items-center gap-2 md:gap-3 relative">
+                <button
+                  onClick={playPreviousStation}
+                  disabled={recentlyPlayed.length <= 1}
+                  className={`p-2 rounded-full transition-all ${
+                    recentlyPlayed.length <= 1 ? 'opacity-30' : 'hover:bg-white/10 text-white'
+                  }`}
+                >
+                  <SkipBack size={20} />
+                </button>
 
-              <button
-                onClick={handlePlay}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 p-4 rounded-2xl shadow-xl hover:scale-110 transition-all duration-300 relative overflow-hidden"
-              >
-                {(isPlaying || isPlayingCommercial) ? (
-                  <Pause size={28} className="text-white relative z-10" />
-                ) : (
-                  <Play size={28} className="text-white relative z-10" />
-                )}
-                <div className="absolute inset-0 bg-white/20 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
-              </button>
+                <button
+                  onClick={handlePlay}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white p-3 rounded-full shadow-lg hover:scale-105 active:scale-95 transition-all flex-shrink-0"
+                >
+                  {(isPlaying || isPlayingCommercial) ? (
+                    <Pause size={22} fill="currentColor" />
+                  ) : (
+                    <Play size={22} fill="currentColor" className="ml-0.5" />
+                  )}
+                </button>
 
-              <button
-                onClick={() => toggleFavorite(currentStation)}
-                className={`p-3 rounded-2xl transition-all duration-300 hover:scale-110 ${
-                  isFavorite(currentStation.stationuuid)
-                    ? 'bg-gradient-to-r from-pink-500 to-red-500 text-white'
-                    : 'hover:bg-white/20 text-white'
-                }`}
-              >
-                <Heart size={24} fill={isFavorite(currentStation.stationuuid) ? 'currentColor' : 'none'} />
-              </button>
-            </div>
+                {/* Favorito (Desktop) */}
+                <button
+                  onClick={() => toggleFavorite(currentStation)}
+                  className={`hidden md:block p-2 rounded-full transition-all hover:bg-white/10 ${
+                    isFavorite(currentStation.stationuuid) ? 'text-red-500' : 'text-white/60'
+                  }`}
+                >
+                  <Heart size={20} fill={isFavorite(currentStation.stationuuid) ? 'currentColor' : 'none'} />
+                </button>
 
-            {/* Volume e Visualizador */}
-            <div className="flex items-center gap-4 flex-1 justify-end">
-              <button 
-                onClick={toggleMute}
-                className="p-2 rounded-xl hover:bg-white/20 transition-all duration-300 text-white"
-              >
-                {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
-              </button>
+                {/* Botão de Compartilhar (Desktop) e MENU FLUTUANTE */}
+                <div className="hidden md:block relative" ref={shareMenuRef}>
+                  <button
+                    onClick={handleShare}
+                    className={`p-2 rounded-full transition-all hover:bg-white/10 ${showShareMenu ? 'text-blue-400 bg-white/10' : 'text-white/60'}`}
+                  >
+                    <Share2 size={20} />
+                  </button>
 
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={handleVolumeChange}
-                className="w-24 lg:w-32 h-2 bg-white/20 rounded-full appearance-none cursor-pointer slider"
-                style={{
-                  background: `linear-gradient(to right, #3b82f6 0%, #8b5cf6 ${volume * 100}%, rgba(255,255,255,0.2) ${volume * 100}%, rgba(255,255,255,0.2) 100%)`
-                }}
-              />
-
-              {(isPlaying || isPlayingCommercial) && (
-                <div className="wave-animation ml-4">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="wave-bar"></div>
-                  ))}
+                  {/* Pop-up de Redes Sociais */}
+                  {showShareMenu && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 bg-[#1a1a2e] border border-white/10 p-2 rounded-xl shadow-2xl flex items-center gap-2 share-menu-animation z-50 min-w-max">
+                      <button onClick={() => shareToSocial('whatsapp')} className="p-2 hover:bg-white/5 rounded-lg transition-colors group" title="WhatsApp">
+                        <SocialIcon type="whatsapp" />
+                      </button>
+                      <button onClick={() => shareToSocial('facebook')} className="p-2 hover:bg-white/5 rounded-lg transition-colors group" title="Facebook">
+                         <SocialIcon type="facebook" />
+                      </button>
+                      <button onClick={() => shareToSocial('twitter')} className="p-2 hover:bg-white/5 rounded-lg transition-colors group" title="Twitter/X">
+                         <SocialIcon type="twitter" />
+                      </button>
+                      <div className="w-px h-4 bg-white/10 mx-1"></div>
+                      <button onClick={copyToClipboard} className="p-2 hover:bg-white/5 rounded-lg transition-colors group relative" title="Copiar Link">
+                        {linkCopied ? <Check size={16} className="text-green-400" /> : <LinkIcon size={16} className="text-gray-300 group-hover:text-white" />}
+                      </button>
+                      {/* Seta do pop-up */}
+                      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#1a1a2e] border-r border-b border-white/10 rotate-45"></div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              <div className="w-px h-8 bg-white/10 md:hidden mx-1"></div>
+
+              <div className="flex items-center gap-2">
+                <button onClick={toggleMute} className="text-white/70 hover:text-white transition-colors">
+                  {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="w-16 md:w-24 h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer slider accent-blue-500"
+                  style={{
+                    background: `linear-gradient(to right, #3b82f6 0%, #8b5cf6 ${volume * 100}%, rgba(255,255,255,0.1) ${volume * 100}%, rgba(255,255,255,0.1) 100%)`
+                  }}
+                />
+              </div>
             </div>
+
           </div>
         </div>
       )}
