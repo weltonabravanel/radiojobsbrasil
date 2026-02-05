@@ -180,7 +180,7 @@ const HomePage: React.FC = () => {
         >
           {[
             {
-              href: "https://radiojobs.com.br",
+              href: "https://97fmnatal.com.br",
               img: "https://97fmnatal.com.br/images/vitrine.png",
               alt: "Rádio antiga",
               title: "Sintonize Emoções",
