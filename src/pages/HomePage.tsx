@@ -164,10 +164,11 @@ const HomePage: React.FC = () => {
       try {
         const cached = getFromCache('brazilStations');
         if (cached && cached.length > 0) {
-          setBrazilStations(cached.slice(0, 24));
+          // ATUALIZADO: Agora exibe 48 estações do cache se disponível
+          setBrazilStations(cached.slice(0, 96));
         } else {
-          // OTIMIZAÇÃO: Buscando apenas 24 na API
-          const data = await fetchStations({ country: 'Brazil' }, 24);
+          // ATUALIZADO: Agora busca 48 estações na API
+          const data = await fetchStations({ country: 'Brazil' }, 96);
           const shuffled = [...data].sort(() => Math.random() - 0.5);
           setBrazilStations(shuffled);
           saveToCache('brazilStations', shuffled);
