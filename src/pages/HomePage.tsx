@@ -84,7 +84,6 @@ const HomePage: React.FC = () => {
 
   // Função para lidar com clique na Tag (Busca por NOME + PAÍS: Brasil)
   const handleTagClick = async (tagName: string) => {
-    // Se clicar na tag que já está ativa, limpa o filtro (toggle)
     if (selectedTag === tagName) {
       clearTagSearch();
       return;
@@ -95,11 +94,11 @@ const HomePage: React.FC = () => {
     setTagStations([]); 
 
     try {
-      // AQUI ESTÁ A MUDANÇA: Adicionamos country: 'Brazil'
+      // OTIMIZAÇÃO: Buscando apenas 24
       const data = await fetchStations({ 
         name: tagName, 
-        country: 'Brazil' // Filtra apenas estações do Brasil
-      }, 30);
+        country: 'Brazil' 
+      }, 24);
       
       setTagStations(data);
     } catch (err) {
@@ -112,7 +111,6 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     document.title = 'Rádio BR - Ouça rádios brasileiras';
 
-    // LÓGICA DE ALEATORIEDADE DOS STORIES
     const shuffledStories = [...STORIES_DATA].sort(() => Math.random() - 0.5);
     setStories(shuffledStories);
 
@@ -135,15 +133,24 @@ const HomePage: React.FC = () => {
       setLoadingPopular(true);
       try {
         const cached = getFromCache('popularStations');
-        if (cached) {
-          setPopularStations(cached.slice(0, 48));
-          setFeaturedStations(cached.slice(12, 48));
+        if (cached && cached.length > 0) {
+          // Garante que usa no máximo 24 do cache
+          setPopularStations(cached.slice(0, 24));
+          // Embaralha para o Featured parecer diferente, mesmo usando o mesmo cache
+          const featured = [...cached].sort(() => Math.random() - 0.5);
+          setFeaturedStations(featured.slice(0, 24));
         } else {
-          const data = await fetchStations({}, 50);
+          // OTIMIZAÇÃO: Buscando apenas 24 na API
+          const data = await fetchStations({}, 24);
+          
           const shuffled = [...data].sort(() => Math.random() - 0.5);
-          setPopularStations(shuffled.slice(0, 48));
-          setFeaturedStations(shuffled.slice(12, 48));
-          saveToCache('popularStations', shuffled);
+          setPopularStations(shuffled);
+          
+          // Reutiliza os dados para Featured, apenas reordenando
+          const featured = [...data].sort(() => Math.random() - 0.5);
+          setFeaturedStations(featured);
+          
+          saveToCache('popularStations', data);
         }
       } catch (err) {
         console.error('Erro ao carregar estações:', err);
@@ -156,12 +163,13 @@ const HomePage: React.FC = () => {
       setLoadingBrazil(true);
       try {
         const cached = getFromCache('brazilStations');
-        if (cached) {
+        if (cached && cached.length > 0) {
           setBrazilStations(cached.slice(0, 24));
         } else {
-          const data = await fetchStations({ country: 'Brazil' }, 50);
+          // OTIMIZAÇÃO: Buscando apenas 24 na API
+          const data = await fetchStations({ country: 'Brazil' }, 24);
           const shuffled = [...data].sort(() => Math.random() - 0.5);
-          setBrazilStations(shuffled.slice(0, 24));
+          setBrazilStations(shuffled);
           saveToCache('brazilStations', shuffled);
         }
       } catch (err) {

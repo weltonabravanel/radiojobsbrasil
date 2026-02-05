@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Play, Pause, MapPin, Users, Zap } from 'lucide-react';
+import { Heart, Play, Pause, MapPin } from 'lucide-react';
 import { RadioStation } from '../types/station';
 import { useRadio } from '../contexts/RadioContext';
 
@@ -19,17 +19,13 @@ const StationCard: React.FC<StationCardProps> = ({ station }) => {
   
   const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
   
-  const handlePlay = () => {
+  const handlePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (isCurrentStation) {
       togglePlay();
     } else {
       setCurrentStation(station);
     }
-  };
-  
-  const getTags = () => {
-    if (!station.tags) return [];
-    return station.tags.split(',').slice(0, 2);
   };
   
   const getStationImage = () => {
@@ -38,107 +34,92 @@ const StationCard: React.FC<StationCardProps> = ({ station }) => {
         <img 
           src={station.favicon} 
           alt={station.name} 
-          className="h-20 w-20 object-cover rounded-2xl shadow-lg border-2 border-white/20"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           onError={(e) => {
             (e.target as HTMLImageElement).onerror = null;
-            (e.target as HTMLImageElement).src = `https://via.placeholder.com/80/3b82f6/ffffff?text=${station.name.charAt(0)}`;
+            (e.target as HTMLImageElement).src = `https://via.placeholder.com/300/3b82f6/ffffff?text=${station.name.charAt(0)}`;
           }}
         />
       );
     }
     
     return (
-      <div className="h-20 w-20 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl rounded-2xl shadow-lg border-2 border-white/20">
+      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
         {station.name.charAt(0)}
       </div>
     );
   };
   
   return (
-    <div className={`station-card group hover-lift ${isCurrentStation ? 'ring-4 ring-blue-500/50 bg-white/95' : ''}`}>
-      <div className="flex gap-4">
-        <div className="relative">
-          {getStationImage()}
-          {isCurrentStation && isPlaying && (
-            <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full p-1">
-              <div className="wave-animation">
-                <div className="wave-bar bg-white"></div>
-                <div className="wave-bar bg-white"></div>
-                <div className="wave-bar bg-white"></div>
-              </div>
-            </div>
-          )}
-        </div>
+    <div 
+      className={`
+        station-card group relative flex flex-col w-full overflow-hidden rounded-lg transition-all duration-300
+        ${isCurrentStation ? 'ring-2 ring-blue-500 shadow-md' : 'bg-white shadow-sm hover:shadow-md'}
+      `}
+      title={station.name} // Mostra o nome completo ao passar o mouse
+    >
+      {/* --- Área da Imagem (Sempre Quadrada) --- */}
+      <div className="relative w-full aspect-square overflow-hidden bg-gray-100">
+        {getStationImage()}
         
-        <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-lg truncate text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
-            {station.name}
-          </h3>
-          
-          <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-            <MapPin size={14} className="text-blue-500" />
-            <span>{station.country}</span>
-            {station.language && (
-              <>
-                <span className="text-gray-400">•</span>
-                <span>{station.language}</span>
-              </>
+        {/* Overlay Escuro (Aparece no hover) */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+
+        {/* Botão Favorito (Canto superior direito) */}
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleFavorite(station);
+          }}
+          className="absolute top-1 right-1 z-10 p-1 rounded-full hover:bg-black/10 transition-colors"
+        >
+          <Heart 
+            size={12} 
+            className={`${isFavorite(station.stationuuid) ? 'fill-red-500 text-red-500' : 'text-white drop-shadow-md'}`} 
+          />
+        </button>
+
+        {/* Botão Play (Centro - condicional) */}
+        <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
+           isCurrentStation ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        }`}>
+          <button 
+            onClick={handlePlay}
+            className={`
+              p-1.5 rounded-full shadow-lg transform hover:scale-110 flex items-center justify-center
+              ${isCurrentStation && isPlaying 
+                ? 'bg-white text-red-500' 
+                : 'bg-white text-blue-600'
+              }
+            `}
+          >
+            {isCurrentStation && isPlaying ? (
+              <Pause size={16} fill="currentColor" />
+            ) : (
+              <Play size={16} fill="currentColor" className="ml-0.5" />
             )}
+          </button>
+        </div>
+
+        {/* Equalizador Animado (Canto inferior - apenas se tocando) */}
+        {isCurrentStation && isPlaying && (
+          <div className="absolute bottom-1 right-1 flex gap-0.5 items-end h-2">
+            <div className="w-0.5 bg-white animate-[bounce_1s_infinite] h-full"></div>
+            <div className="w-0.5 bg-white animate-[bounce_1.2s_infinite] h-1.5"></div>
+            <div className="w-0.5 bg-white animate-[bounce_0.8s_infinite] h-2"></div>
           </div>
-          
-          <div className="mt-3 flex flex-wrap gap-2">
-            {getTags().map((tag, index) => (
-              <span key={index} className="tag text-xs">
-                {tag.trim()}
-              </span>
-            ))}
-          </div>
-          
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={handlePlay}
-                className={`relative overflow-hidden p-3 rounded-2xl font-semibold transition-all duration-300 hover:scale-110 shadow-lg ${
-                  isCurrentStation && isPlaying 
-                    ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white animate-pulse-glow' 
-                    : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
-                }`}
-              >
-                {isCurrentStation && isPlaying ? (
-                  <Pause size={18} />
-                ) : (
-                  <Play size={18} />
-                )}
-                <div className="absolute inset-0 bg-white/20 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
-              </button>
-              
-              <button 
-                onClick={() => toggleFavorite(station)}
-                className={`p-3 rounded-2xl transition-all duration-300 hover:scale-110 ${
-                  isFavorite(station.stationuuid) 
-                    ? 'bg-gradient-to-r from-pink-500 to-red-500 text-white shadow-lg' 
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-                }`}
-              >
-                <Heart size={18} fill={isFavorite(station.stationuuid) ? "currentColor" : "none"} />
-              </button>
-            </div>
-            
-            <div className="flex items-center gap-4 text-xs text-gray-500">
-              {station.votes > 0 && (
-                <div className="flex items-center gap-1">
-                  <Zap size={12} className="text-yellow-500" />
-                  <span>{station.votes}</span>
-                </div>
-              )}
-              {station.clickcount > 0 && (
-                <div className="flex items-center gap-1">
-                  <Users size={12} className="text-blue-500" />
-                  <span>{station.clickcount}</span>
-                </div>
-              )}
-            </div>
-          </div>
+        )}
+      </div>
+      
+      {/* --- Área de Texto (Ultra Compacta) --- */}
+      <div className="p-1.5 bg-white text-center">
+        <h3 className="font-bold text-gray-900 truncate text-[10px] sm:text-xs leading-tight">
+          {station.name}
+        </h3>
+        
+        <div className="flex items-center justify-center gap-0.5 text-[9px] text-gray-400 mt-0.5">
+          <MapPin size={8} className="shrink-0" />
+          <span className="truncate max-w-[80%]">{station.country}</span>
         </div>
       </div>
     </div>
